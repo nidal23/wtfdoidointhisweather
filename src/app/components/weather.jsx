@@ -11,31 +11,53 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import axios from "axios";
 
 const WeatherPage = () => {
   const [weatherMetric, setWeatherMetric] = useState("Celcius");
+  const [currentWeather, setCurrentWeather] = useState(null);
 
-  const geoLocation = () => {
+
+  function getUserLocation() {
     if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          function(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            // Now you can use these coordinates to fetch weather data or perform other tasks
-          },
-          function(error) {
-            console.error("Error getting user's geolocation:", error.message);
-          }
-        );
-      } else {
-        console.error("Geolocation is not supported by this browser.");
-      }
-}
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          console.log('Latitude:', latitude);
+          console.log('Longitude:', longitude);
+          // Now you can use these coordinates to make the API call
+          fetchWeatherData(latitude, longitude);
+        },
+        function(error) {
+          console.error("Error getting user's geolocation:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }
 
 
-let location = geoLocation();
+  function fetchWeatherData(latitude, longitude) {
+    const apiKey = process.env.OPEN_WEATHER_API; 
+    console.log("open weather api: ", apiKey)
+    const apiUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude}&lon=${longitude}&exclude={part}&appid=${apiKey}`;
+  
+    axios.get(apiUrl)
+      .then(response => {
+        // Handle API response data
+        console.log('Weather data:', response.data);
+        setCurrentWeather(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching weather data:', error);
+      });
+  }
 
-console.log("location", location)
+
+  getUserLocation();
+
 
   const date = new Date();
   let day = date.getDate();
